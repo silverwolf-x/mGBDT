@@ -5,14 +5,19 @@ from xgboost.sklearn import XGBModel, _objective_decorator
 
 
 class OnlineXGB(XGBModel):
-    def fit_increment(self, X, y, num_boost_round=1, params=None):
+    def fit_increment(self, X, y, num_boost_round=1, params=None):  #params是XGBModel中存储参数的字典 此处默认的params是None
         trainDmatrix = DMatrix(X, label=y, nthread=self.n_jobs, missing=self.missing)
-        extra_params = params
-        params = self.get_xgb_params()
-        if extra_params is not None:
+        extra_params = params           #extra_params为输入的params值 若未输入则为None 
+        params = self.get_xgb_params()  #params重新定义为XGBModel中的params 
+        
+        #如果输入了params则用输入值 没有输入则用XGBModel中的params 
+        if extra_params is not None:  
             for k, v in extra_params.items():
                 params[k] = v
-        params.pop("n_estimators")
+        #原本此处没有if语句 实际运行时报错KeyError: 'n_estimators' (对字典中某个key进行操作时 如该key不存在 就会报这个错)
+        #加上if语句进行key是否存在的判断
+        if "n_estimators" in params:
+            params.pop("n_estimators")  #n_estimators基学习器的数量 即迭代次数
 
         if callable(self.objective):
             obj = _objective_decorator(self.objective)
@@ -20,7 +25,8 @@ class OnlineXGB(XGBModel):
         else:
             obj = None
 
-        if self._Booster is None:
+        #_Booster存储训练好的XGBModel
+        if self._Booster is None:  
             self._Booster = train(
                     params=params,
                     dtrain=trainDmatrix,
