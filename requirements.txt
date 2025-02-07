@@ -1,5 +1,9 @@
+# python >= 3.9
 termcolor
-xgboost==0.71
-joblib==0.11
-numpy<=1.12.1
-scikit-learn==0.18.2
+xgboost<1
+joblib
+numpy<2
+scikit-learn
+torch
+pandas
+matplotlib
